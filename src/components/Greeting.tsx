@@ -49,6 +49,8 @@ let UserGreeting = styled.text`
   font-family: "Big Caslon";
   color: black;
   font-size: 40px;
+  font-weight: lighter;
+  padding: 8px;
 `;
 
 export default Greeting;
