@@ -13,6 +13,7 @@ export interface TaskInterface {
   isCompleted: boolean;
   createdTask: string;
   completedTask: string | null;
+  isNewlyCreated: boolean;
 }
 
 export interface TaskListsInterface {
@@ -21,34 +22,8 @@ export interface TaskListsInterface {
 }
 
 const DEFAULT_TASK_LISTS: TaskListsInterface = {
-  tasksToBeDone: [
-    {
-      taskContent: "fare la spesa",
-      isCompleted: false,
-      createdTask: new Date("2022-04-11T03:24:00").toISOString(),
-      completedTask: null,
-    },
-    {
-      taskContent: "cucinare la cena",
-      isCompleted: false,
-      createdTask: new Date("2022-01-17T03:24:00").toISOString(),
-      completedTask: null,
-    },
-  ],
-  tasksCompleted: [
-    {
-      taskContent: "andare al mare",
-      isCompleted: true,
-      createdTask: new Date("2022-06-11T03:24:00").toISOString(),
-      completedTask: new Date("2022-06-25T03:24:00").toISOString(),
-    },
-    {
-      taskContent: "yoga",
-      isCompleted: true,
-      createdTask: new Date("2022-03-11T03:24:00").toISOString(),
-      completedTask: new Date("2022-01-09T03:24:00").toISOString(),
-    },
-  ],
+  tasksToBeDone: [],
+  tasksCompleted: [],
 };
 
 const LOCALSTORAGE_TASK_LISTS = "local task";
@@ -85,7 +60,16 @@ const TaskList = (props: Props): JSX.Element => {
     setShowNotes(!showNotes);
   };
 
-  const addNewTask = (newTask: TaskInterface) => {
+  // quando clicchiamo sul bottone + aggiungiamo direttamente un task vuoto
+  const addNewTask = () => {
+    const newTask = {
+      taskContent: "",
+      isCompleted: false,
+      createdTask: new Date().toISOString(),
+      completedTask: null,
+      isNewlyCreated: true, // ma lo marchiamo come nuovo per poterlo gestire in modo diverso dentro TaskComponent.tsx
+    };
+
     setTaskLists((oldTaskLists) => {
       const tasksToBeDone = [newTask, ...(oldTaskLists?.tasksToBeDone ?? [])];
 
@@ -144,7 +128,11 @@ const TaskList = (props: Props): JSX.Element => {
         const taskToBeModified = newTaskCompleted.find(
           (_) => _.createdTask === task.createdTask
         );
-        if (taskToBeModified) taskToBeModified.taskContent = newContent;
+
+        if (taskToBeModified) {
+          taskToBeModified.taskContent = newContent;
+          taskToBeModified.isNewlyCreated = false; // quando modifichiamo il contenuto di un task ci segniamo anche che non è più nuovo
+        }
 
         return {
           tasksToBeDone: oldTaskLists?.tasksToBeDone ?? [],
@@ -155,7 +143,12 @@ const TaskList = (props: Props): JSX.Element => {
         const taskToBeModified = newTaskToBeDone.find(
           (_) => _.createdTask === task.createdTask
         );
-        if (taskToBeModified) taskToBeModified.taskContent = newContent;
+
+        if (taskToBeModified) {
+          taskToBeModified.taskContent = newContent;
+          taskToBeModified.isNewlyCreated = false; // quando modifichiamo il contenuto di un task ci segniamo anche che non è più nuovo
+        }
+
         return {
           tasksToBeDone: newTaskToBeDone,
           tasksCompleted: oldTaskLists?.tasksCompleted ?? [],
@@ -169,7 +162,7 @@ const TaskList = (props: Props): JSX.Element => {
       <TitleNotesWrapper>
         <TitleWrapper>
           <TitoloDiv>Your tasks</TitoloDiv>
-          <Bottone>
+          <Bottone onClick={addNewTask}>
             <PlusCircleFill size={20} />
           </Bottone>
         </TitleWrapper>

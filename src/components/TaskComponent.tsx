@@ -36,6 +36,11 @@ const TaskComponent = ({
     setTimeoutRef(newTimeout);
   };
 
+  const handleLeaveFocus = () => {
+    // quando si perde il focus, SOLO per i task che sono newlyCreated e che non hanno nessun contenuto, eliminiamo il task vuoto
+    if (task.isNewlyCreated && taskName === "") deleteTask(task);
+  };
+
   return (
     <TaskWrapper>
       <InputSpan>
@@ -50,6 +55,8 @@ const TaskComponent = ({
           value={taskName}
           onChange={taskChangeHandler}
           placeholder={"Write your task..."} // placeholder che viene mostrato quando il task è vuoto
+          autoFocus={task.isNewlyCreated} // se il task è segnato come isNewlyCreated, vogliamo che sia focused appena viene montato
+          onBlur={handleLeaveFocus} // onBlur viene chiamato quando viene cliccato al di fuori dell'input, e si perde il focus
         />
       </InputSpan>
 
