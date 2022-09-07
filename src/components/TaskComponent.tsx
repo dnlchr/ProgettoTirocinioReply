@@ -18,9 +18,22 @@ const TaskComponent = ({
 }: Props): JSX.Element => {
   const [taskName, setTaskName] = useState(task.taskContent);
 
+  // timeout per non aggiornare le liste dei task ad ogni tasto digitato, ma solo dopo che per un certo lasso di tempo non viene digitato altro
+  const [timeoutRef, setTimeoutRef] = useState<NodeJS.Timeout>();
+
   const taskChangeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTaskName(event.target.value);
-    handleChangeTask(task, event.target.value);
+    setTaskName(event.target.value); // lo stato locale lo aggiorniamo ad ogni digitazione comunque, in modo che si veda sempre aggiornato a video
+
+    // ogni volta che digitiamo una nuova lettera però resettiamo il nostro timer
+    // controlliamo se esiste prima di farlo perché altrimenti la prima volta cercheremmo di eliminare qualcosa che non esiste, creando un errore
+    if (timeoutRef) clearTimeout(timeoutRef);
+
+    // creiamo un nuovo timeout, che poi mettiamo in timeoutRef, di 500ms
+    const newTimeout = setTimeout(() => {
+      // quando il timeout raggiunge i 500ms, allora lanciamo la funzione handleChangeTask
+      handleChangeTask(task, event.target.value);
+    }, 500);
+    setTimeoutRef(newTimeout);
   };
 
   return (
