@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { cloneDeep, isEqual } from "lodash";
 import styled from "styled-components";
 import {
   PlusCircleFill,
@@ -10,8 +11,8 @@ import TaskComponent from "./TaskComponent";
 export interface TaskInterface {
   taskContent: string;
   isCompleted: boolean;
-  createdTask: Date;
-  completedTask: Date | null;
+  createdTask: string;
+  completedTask: string | null;
 }
 
 export interface TaskListsInterface {
@@ -24,13 +25,13 @@ const DEFAULT_TASK_LISTS: TaskListsInterface = {
     {
       taskContent: "fare la spesa",
       isCompleted: false,
-      createdTask: new Date("2022-08-11T03:24:00"),
+      createdTask: new Date("2022-04-11T03:24:00").toISOString(),
       completedTask: null,
     },
     {
       taskContent: "cucinare la cena",
       isCompleted: false,
-      createdTask: new Date("2022-01-11T03:24:00"),
+      createdTask: new Date("2022-01-17T03:24:00").toISOString(),
       completedTask: null,
     },
   ],
@@ -38,23 +39,39 @@ const DEFAULT_TASK_LISTS: TaskListsInterface = {
     {
       taskContent: "andare al mare",
       isCompleted: true,
-      createdTask: new Date("2022-06-11T03:24:00"),
-      completedTask: new Date("2022-06-25T03:24:00"),
+      createdTask: new Date("2022-06-11T03:24:00").toISOString(),
+      completedTask: new Date("2022-06-25T03:24:00").toISOString(),
     },
     {
       taskContent: "yoga",
       isCompleted: true,
-      createdTask: new Date("2022-03-11T03:24:00"),
-      completedTask: new Date("2022-04-25T03:24:00"),
+      createdTask: new Date("2022-03-11T03:24:00").toISOString(),
+      completedTask: new Date("2022-01-09T03:24:00").toISOString(),
     },
   ],
 };
 
+const LOCALSTORAGE_TASK_LISTS = "local task";
 type Props = {};
 
 const TaskList = (props: Props): JSX.Element => {
-  const [taskLists, setTaskLists] =
-    useState<TaskListsInterface>(DEFAULT_TASK_LISTS);
+  const [taskLists, setTaskLists] = useState<TaskListsInterface>();
+
+  useEffect(() => {
+    let items = localStorage.getItem(LOCALSTORAGE_TASK_LISTS);
+    const newState = items ? JSON.parse(items) : DEFAULT_TASK_LISTS;
+    if (
+      !isEqual(newState, DEFAULT_TASK_LISTS) &&
+      !isEqual(newState, taskLists)
+    ) {
+      setTaskLists(newState);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (taskLists)
+      localStorage.setItem(LOCALSTORAGE_TASK_LISTS, JSON.stringify(taskLists));
+  }, [taskLists]);
 
   const [showList, setShowList] = useState(true);
   const taskButtonHandler = () => {
@@ -69,20 +86,82 @@ const TaskList = (props: Props): JSX.Element => {
 
   const addNewTask = (newTask: TaskInterface) => {
     setTaskLists((oldTaskLists) => {
-      const tasksToBeDone = [newTask, ...oldTaskLists.tasksToBeDone];
+      const tasksToBeDone = [newTask, ...(oldTaskLists?.tasksToBeDone ?? [])];
 
       return {
         tasksToBeDone,
-        tasksCompleted: oldTaskLists.tasksCompleted,
+        tasksCompleted: oldTaskLists?.tasksCompleted ?? [],
       };
     });
   };
 
-  // const deleteTask = (task: Task, currentTaskList: TaskLists) => {
-  // cercare ed eliminare task da currentTaskList.tasksToBeDone o currentTaskList.tasksCompleted, a seconda del task che riceviamo in input
-  //};
+  const deleteTask = (task: TaskInterface) => {
+    setTaskLists((oldTaskLists) => {
+      return {
+        tasksToBeDone: deleteTaskFromList(
+          task,
+          oldTaskLists?.tasksToBeDone ?? []
+        ),
+        tasksCompleted: deleteTaskFromList(
+          task,
+          oldTaskLists?.tasksCompleted ?? []
+        ),
+      };
+    });
+  };
 
-  //const [isClicked, setisClicked] = useState(true);
+  const deleteTaskFromList = (
+    task: TaskInterface,
+    taskList: TaskInterface[]
+  ) => {
+    return taskList.filter((_) => _.createdTask !== task.createdTask);
+  };
+
+  const markAsCompletedOrNot = (task: TaskInterface) => {
+    setTaskLists((oldTaskLists) => {
+      return {
+        tasksToBeDone: task.isCompleted
+          ? [
+              { ...task, isCompleted: !task.isCompleted },
+              ...(oldTaskLists?.tasksToBeDone ?? []),
+            ]
+          : deleteTaskFromList(task, oldTaskLists?.tasksToBeDone ?? []),
+        tasksCompleted: task.isCompleted
+          ? deleteTaskFromList(task, oldTaskLists?.tasksCompleted ?? [])
+          : [
+              { ...task, isCompleted: !task.isCompleted },
+              ...(oldTaskLists?.tasksCompleted ?? []),
+            ],
+      };
+    });
+  };
+
+  const changeTask = (task: TaskInterface, newContent: string) => {
+    setTaskLists((oldTaskLists) => {
+      if (task.isCompleted) {
+        const newTaskCompleted = cloneDeep(oldTaskLists?.tasksCompleted ?? []);
+        const taskToBeModified = newTaskCompleted.find(
+          (_) => _.createdTask === task.createdTask
+        );
+        if (taskToBeModified) taskToBeModified.taskContent = newContent;
+
+        return {
+          tasksToBeDone: oldTaskLists?.tasksToBeDone ?? [],
+          tasksCompleted: newTaskCompleted,
+        };
+      } else {
+        const newTaskToBeDone = cloneDeep(oldTaskLists?.tasksToBeDone ?? []);
+        const taskToBeModified = newTaskToBeDone.find(
+          (_) => _.createdTask === task.createdTask
+        );
+        if (taskToBeModified) taskToBeModified.taskContent = newContent;
+        return {
+          tasksToBeDone: newTaskToBeDone,
+          tasksCompleted: oldTaskLists?.tasksCompleted ?? [],
+        };
+      }
+    });
+  };
 
   return (
     <>
@@ -107,20 +186,41 @@ const TaskList = (props: Props): JSX.Element => {
 
       <Wrapper>
         <TaskAreaWrapper>
-          <TaskListWrapper>
-            {taskLists.tasksToBeDone.map((_: TaskInterface) => (
-              <TaskComponent task={_} key={_.createdTask.toString()} />
-            ))}
-          </TaskListWrapper>
-          <ButtonWrapper>
-            <BottoneTask onClick={taskButtonHandler}> {taskText}</BottoneTask>
-          </ButtonWrapper>
-          {showList && (
-            <TaskListWrapper>
-              {taskLists.tasksCompleted.map((_: TaskInterface) => (
-                <TaskComponent task={_} key={_.createdTask.toString()} />
-              ))}
-            </TaskListWrapper>
+          {taskLists ? (
+            <>
+              <TaskListWrapper>
+                {taskLists.tasksToBeDone.map((_: TaskInterface) => (
+                  <TaskComponent
+                    task={_}
+                    key={_.createdTask.toString()}
+                    deleteTask={deleteTask}
+                    markAsCompletedOrNot={markAsCompletedOrNot}
+                    handleChangeTask={changeTask}
+                  />
+                ))}
+              </TaskListWrapper>
+              <ButtonWrapper>
+                <BottoneTask onClick={taskButtonHandler}>
+                  {" "}
+                  {taskText}
+                </BottoneTask>
+              </ButtonWrapper>
+              {showList && (
+                <TaskListWrapper>
+                  {taskLists.tasksCompleted.map((_: TaskInterface) => (
+                    <TaskComponent
+                      task={_}
+                      key={_.createdTask.toString()}
+                      deleteTask={deleteTask}
+                      markAsCompletedOrNot={markAsCompletedOrNot}
+                      handleChangeTask={changeTask}
+                    />
+                  ))}
+                </TaskListWrapper>
+              )}
+            </>
+          ) : (
+            "loading"
           )}
         </TaskAreaWrapper>
 
