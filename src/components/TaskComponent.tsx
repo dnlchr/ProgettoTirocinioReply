@@ -43,12 +43,13 @@ const TaskComponent = ({
           value={String(task.createdTask)}
           type="checkbox"
           checked={task.isCompleted}
-          onClick={() => markAsCompletedOrNot(task)}
+          onChange={() => markAsCompletedOrNot(task)} // onChange invece che onClick per evitare warning
         />
         <InputTask
           type="text"
           value={taskName}
           onChange={taskChangeHandler}
+          placeholder={"Write your task..."} // placeholder che viene mostrato quando il task è vuoto
         ></InputTask>
       </InputSpan>
 
@@ -94,6 +95,11 @@ let TrashButton = styled.button`
   border: none;
   outline: none;
   background: none;
+
+  // questi stili permettono di mostrare una interazione all'utente quando mette il mouse sopra ad un bottone
+  &:hover {
+    cursor: pointer;
+  }
 `;
 
 export default TaskComponent;

@@ -202,7 +202,6 @@ const TaskList = (props: Props): JSX.Element => {
               </TaskListWrapper>
               <ButtonWrapper>
                 <BottoneTask onClick={taskButtonHandler}>
-                  {" "}
                   {taskText}
                 </BottoneTask>
               </ButtonWrapper>
@@ -267,6 +266,11 @@ let Bottone = styled.button`
   outline: none;
   background: none;
   font-size: 10px;
+
+  // questi stili permettono di mostrare una interazione all'utente quando mette il mouse sopra ad un bottone
+  &:hover {
+    cursor: pointer;
+  }
 `;
 
 let BottoneTask = styled.button`
@@ -278,6 +282,12 @@ let BottoneTask = styled.button`
   outline: none;
   background: none;
   font-size: 15px;
+
+  // questi stili permettono di mostrare una interazione all'utente quando mette il mouse sopra ad un bottone
+  &:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
 `;
 
 let ButtonWrapper = styled.div`
