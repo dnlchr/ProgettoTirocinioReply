@@ -50,7 +50,7 @@ const TaskComponent = ({
           value={taskName}
           onChange={taskChangeHandler}
           placeholder={"Write your task..."} // placeholder che viene mostrato quando il task è vuoto
-        ></InputTask>
+        />
       </InputSpan>
 
       <TrashButton onClick={() => deleteTask(task)}>
@@ -78,6 +78,7 @@ let InputTask = styled.input`
   word-spacing: 9px;
   font-weight: lighter;
   border: none;
+  width: 100%;
 
   &:focus {
     color: white;
@@ -89,6 +90,7 @@ let InputTask = styled.input`
 let InputSpan = styled.div`
   display: flex;
   gap: 10px;
+  width: 100%;
 `;
 
 let TrashButton = styled.button`
