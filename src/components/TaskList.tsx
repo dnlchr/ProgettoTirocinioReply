@@ -193,11 +193,13 @@ const TaskList = (props: Props): JSX.Element => {
                   />
                 ))}
               </TaskListWrapper>
-              <ButtonWrapper>
-                <BottoneTask onClick={taskButtonHandler}>
-                  {taskText}
-                </BottoneTask>
-              </ButtonWrapper>
+              {taskLists.tasksCompleted && taskLists.tasksCompleted.length > 0 && (
+                <ButtonWrapper>
+                  <BottoneTask onClick={taskButtonHandler}>
+                    {taskText}
+                  </BottoneTask>
+                </ButtonWrapper>
+              )}
               {showList && (
                 <TaskListWrapper>
                   {taskLists.tasksCompleted.map((_: TaskInterface) => (
