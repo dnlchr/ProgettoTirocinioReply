@@ -58,13 +58,14 @@ const TaskList = (props: Props): JSX.Element => {
   const [taskLists, setTaskLists] = useState<TaskListsInterface>();
 
   useEffect(() => {
-    let items = localStorage.getItem(LOCALSTORAGE_TASK_LISTS);
-    const newState = items ? JSON.parse(items) : DEFAULT_TASK_LISTS;
-    if (
-      !isEqual(newState, DEFAULT_TASK_LISTS) &&
-      !isEqual(newState, taskLists)
-    ) {
-      setTaskLists(newState);
+    let localStorageItems = localStorage.getItem(LOCALSTORAGE_TASK_LISTS); // prendiamo il valore (stringa) salvato in local storage
+
+    if (localStorageItems) {
+      // se esiste, ie. non è la prima volta che apriamo l'applicativo
+      const localStorageObj = JSON.parse(localStorageItems); // trasformiamo la stringa in oggetto
+      setTaskLists(localStorageObj); // la salviamo nello state
+    } else {
+      setTaskLists(DEFAULT_TASK_LISTS); // in caso contrario salviamo la lista di default (che sarà vuota)
     }
   }, []);
 
