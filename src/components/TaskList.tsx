@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { cloneDeep, isEqual } from "lodash";
+import { cloneDeep } from "lodash";
 import styled from "styled-components";
 import {
   PlusCircleFill,
@@ -7,6 +7,7 @@ import {
   ArrowDownCircleFill,
 } from "react-bootstrap-icons";
 import TaskComponent from "./TaskComponent";
+import Notes from "./Notes";
 
 export interface TaskInterface {
   taskContent: string;
@@ -102,6 +103,22 @@ const TaskList = (props: Props): JSX.Element => {
     return taskList.filter((_) => _.createdTask !== task.createdTask);
   };
 
+  const sortList = (
+    a: TaskInterface,
+    b: TaskInterface,
+    sortBy: "createdTask" | "completedTask"
+  ) => {
+    let timeStampA = a[sortBy as keyof TaskInterface] as string | null;
+    let timeStampB = b[sortBy as keyof TaskInterface] as string | null;
+    if (timeStampA === null || timeStampB === null) return 0;
+
+    let dataA = new Date(timeStampA).getTime();
+
+    let dataB = new Date(timeStampB).getTime();
+
+    return dataA - dataB;
+  };
+
   const markAsCompletedOrNot = (task: TaskInterface) => {
     setTaskLists((oldTaskLists) => {
       return {
@@ -109,14 +126,14 @@ const TaskList = (props: Props): JSX.Element => {
           ? [
               { ...task, isCompleted: !task.isCompleted },
               ...(oldTaskLists?.tasksToBeDone ?? []),
-            ]
+            ].sort((a, b) => sortList(a, b, "createdTask"))
           : deleteTaskFromList(task, oldTaskLists?.tasksToBeDone ?? []),
         tasksCompleted: task.isCompleted
           ? deleteTaskFromList(task, oldTaskLists?.tasksCompleted ?? [])
           : [
               { ...task, isCompleted: !task.isCompleted },
               ...(oldTaskLists?.tasksCompleted ?? []),
-            ],
+            ].sort((a, b) => sortList(a, b, "completedTask")),
       };
     });
   };
@@ -221,7 +238,7 @@ const TaskList = (props: Props): JSX.Element => {
 
         {showNotes && (
           <TextAreaWrapper>
-            <TextArea placeholder="Lorem ipsum bla bla..." />
+            <Notes />
           </TextAreaWrapper>
         )}
       </Wrapper>
@@ -253,6 +270,16 @@ let TitoloDiv = styled.text`
   letter-spacing: 3px;
   word-spacing: 9px;
   font-weight: lighter;
+`;
+
+let NotesDiv = styled.text`
+  font-family: "Big Caslon";
+  color: black;
+  font-size: 17px;
+  letter-spacing: 3px;
+  word-spacing: 9px;
+  font-weight: lighter;
+  text-decoration: underline;
 `;
 
 let Bottone = styled.button`
@@ -328,29 +355,6 @@ let TextAreaWrapper = styled.div`
   width: 40%;
   gap: 10px;
   //flex-grow: 1;
-`;
-
-let NotesDiv = styled.text`
-  font-family: "Big Caslon";
-  color: black;
-  font-size: 17px;
-  letter-spacing: 3px;
-  word-spacing: 9px;
-  font-weight: lighter;
-  text-decoration: underline;
-`;
-
-let TextArea = styled.textarea`
-  font-family: "Big Caslon";
-  color: black;
-  font-size: 13px;
-  letter-spacing: 3px;
-  word-spacing: 9px;
-  font-weight: lighter;
-  border-style: none;
-  border-radius: 8px;
-  padding: 8px;
-  resize: none;
 `;
 
 export default TaskList;

@@ -22,7 +22,7 @@ const UserInput = (props: Props): JSX.Element => {
 
   const changeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
-    localStorage.setItem(LOCAL_STORAGE_USERNAME, name);
+    localStorage.setItem(LOCAL_STORAGE_USERNAME, event.target.value);
   };
 
   return (
